@@ -15,18 +15,30 @@ if __name__ == '__main__':
     else:
         video = cv2.VideoCapture(name)
     sens = int(input("Wprowadź wartość czułości: (0-255) "))
-    pref_width = int(input("Szerokość obszaru wychwytywania ruchu: "))
-    pref_height = int(input("Wysokość obszaru wychwytywania ruchu "))
+    upgrade = input("Czy chcesz określić obszar czułości? (y lub n): ")
+    if upgrade == 'y':
+        start_point = input("Punkt startowy dla obszaru wychwytywania (np. 20 20): ")
+        pref_width = int(input("Szerokość obszaru wychwytywania ruchu: "))
+        pref_height = int(input("Wysokość obszaru wychwytywania ruchu "))
+        start_point = start_point.split()
+        start_x = int(start_point[0])
+        start_y = int(start_point[1])
+    else:
+        start_x = 0
+        start_y = 0
+        pref_width = -1
+        pref_height = -1
 
     prev_frame = None
     while 1:
         frame = video.read()[1]
 
-        def_width = len(frame[0])
-        def_height = len(frame)
+        if pref_height == -1:
+            pref_width = len(frame[0])
+            pref_height = len(frame)
 
-        contour_width = [(def_width / 2) - pref_width / 2, (def_width / 2) + pref_width / 2]
-        contour_height = [def_height / 2 - pref_height / 2, def_height / 2 + pref_height / 2]
+        contour_width = [start_x, start_x + pref_width]
+        contour_height = [start_y, start_y + pref_height]
 
         cv2.rectangle(frame, (int(contour_width[0]), int(contour_height[0])),
                       (int(contour_width[1]), int(contour_height[1])), (0, 255, 0), 2)
