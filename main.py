@@ -1,4 +1,5 @@
 import cv2
+import numpy
 
 
 def display_frames(frame1, frame2, frame3):
@@ -9,7 +10,7 @@ def display_frames(frame1, frame2, frame3):
 
 if __name__ == '__main__':
     is_debug = input("Czy chcesz włączyć tryb debug? (y lub n): ")
-    name = input("Ustal źródło: ")
+    name = input("Ustal źródło (0 - kamera): ")
     if name == '0':
         video = cv2.VideoCapture(0)
     else:
@@ -18,8 +19,8 @@ if __name__ == '__main__':
     upgrade = input("Czy chcesz określić obszar czułości? (y lub n): ")
     if upgrade == 'y':
         start_point = input("Punkt startowy dla obszaru wychwytywania (np. 20 20): ")
-        pref_width = int(input("Szerokość obszaru wychwytywania ruchu: "))
-        pref_height = int(input("Wysokość obszaru wychwytywania ruchu "))
+        pref_width = int(input("Szerokość obszaru wychwytywania ruchu (max 640): "))
+        pref_height = int(input("Wysokość obszaru wychwytywania ruchu (max 480): "))
         start_point = start_point.split()
         start_x = int(start_point[0])
         start_y = int(start_point[1])
@@ -30,13 +31,13 @@ if __name__ == '__main__':
         pref_height = -1
 
     prev_frame = None
+    cnt = 0
     while 1:
         frame = video.read()[1]
 
         if pref_height == -1:
             pref_width = len(frame[0])
             pref_height = len(frame)
-
         contour_width = [start_x, start_x + pref_width]
         contour_height = [start_y, start_y + pref_height]
 
@@ -47,9 +48,11 @@ if __name__ == '__main__':
         gray_frame = cv2.GaussianBlur(gray_frame, (21, 21), 0)
 
         if prev_frame is not None:
-            diff_frame = cv2.absdiff(prev_frame, gray_frame)
+            cv2.accumulateWeighted(gray_frame, prev_frame, 0.05)
+
+            diff_frame = cv2.absdiff(cv2.convertScaleAbs(prev_frame), gray_frame)
             thresh_frame = cv2.threshold(diff_frame, sens, 255, cv2.THRESH_BINARY)[1]
-            thresh_frame = cv2.dilate(thresh_frame, None, iterations=2)
+            thresh_frame = cv2.dilate(thresh_frame, None, iterations=1)
             contour_frame = thresh_frame.copy()
             contour_frame = cv2.resize(contour_frame, (pref_width, pref_height))
             moves = cv2.findContours(contour_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
@@ -66,7 +69,7 @@ if __name__ == '__main__':
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         else:
-            prev_frame = gray_frame
+            prev_frame = gray_frame.copy().astype("float")
 
     video.release()
     cv2.destroyAllWindows()
