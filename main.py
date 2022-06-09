@@ -36,10 +36,10 @@ if __name__ == '__main__':
 
     else:
         masks_nr = 1
-        start_x = 0
-        start_y = 0
-        pref_width = -1
-        pref_height = -1
+        start_x = [0]
+        start_y = [0]
+        pref_width = [-1]
+        pref_height = [-1]
 
     prev_frame = None
     cnt = 0
@@ -94,4 +94,6 @@ if __name__ == '__main__':
 
     video.release()
     cv2.destroyAllWindows()
+
+
 
